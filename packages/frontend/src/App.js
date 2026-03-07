@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './App.css';
 import { CssBaseline, Container, AppBar, Toolbar, Typography, Box } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import TaskList from './TaskList';
@@ -31,47 +32,20 @@ function App() {
   return (
     <>
       <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: '#f5f5f5',
-          pb: 4
-        }}
-      >
-        <AppBar
-          position="static"
-          sx={{
-            background: '#1976d2',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-          }}
-        >
+      <Box className="app-background">
+        <AppBar position="static" className="app-bar">
           <Toolbar>
-            <CheckCircleOutlineIcon sx={{ mr: 2, fontSize: 28 }} />
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 700,
-                letterSpacing: '0.5px'
-              }}
-            >
+            <CheckCircleOutlineIcon className="app-bar-icon" />
+            <Typography variant="h5" className="app-title">
               TODO App
             </Typography>
           </Toolbar>
         </AppBar>
-        <Container 
-          maxWidth="md" 
-          sx={{ 
-            mt: 4,
-            height: 'calc(100vh - 120px)', 
-            display: 'flex', 
-            flexDirection: 'column',
-            overflow: 'hidden'
-          }}
-        >
-          <Box sx={{ mb: 2, flexShrink: 0 }}>
+        <Container maxWidth="md" className="app-container">
+          <Box className="app-form-wrapper">
             <TaskForm onSave={handleSave} initialTask={editingTask} />
           </Box>
-          <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
+          <Box className="app-list-wrapper">
             <TaskList key={refreshKey} onEdit={setEditingTask} />
           </Box>
         </Container>

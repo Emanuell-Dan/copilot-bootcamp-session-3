@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Paper, Typography, Box } from '@mui/material';
+import { TextField, Button, Paper, Typography, Box, ButtonBase } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SaveIcon from '@mui/icons-material/Save';
 
@@ -57,30 +57,11 @@ function TaskForm({ onSave, initialTask }) {
   };
 
   return (
-    <Paper 
-      elevation={0}
-      sx={{ 
-        p: 2, 
-        mb: 2, 
-        width: '100%',
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: 3,
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-        border: '1px solid rgba(255, 255, 255, 0.2)'
-      }}
-    >
-      <Typography 
-        variant="subtitle1" 
-        sx={{ 
-          fontWeight: 600,
-          color: '#1976d2',
-          mb: 1.5
-        }}
-      >
+    <Paper elevation={0} className="task-form-paper">
+      <Typography variant="subtitle1" className="task-form-heading">
         {initialTask ? 'Edit Task' : 'Add Task'}
       </Typography>
-      <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={1.5}>
+      <Box component="form" onSubmit={handleSubmit} className="task-form-fields">
         <TextField
           id="task-title"
           label="Task Title"
@@ -91,17 +72,7 @@ function TaskForm({ onSave, initialTask }) {
           fullWidth
           size="small"
           inputProps={{ 'data-testid': 'title-input' }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              '&:hover fieldset': {
-                borderColor: '#1976d2',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#1976d2',
-              }
-            }
-          }}
+          className="task-input"
         />
         <TextField
           id="task-description"
@@ -114,17 +85,7 @@ function TaskForm({ onSave, initialTask }) {
           fullWidth
           size="small"
           inputProps={{ 'data-testid': 'description-input' }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              '&:hover fieldset': {
-                borderColor: '#1976d2',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#1976d2',
-              }
-            }
-          }}
+          className="task-input"
         />
         <TextField
           id="task-due-date"
@@ -137,53 +98,28 @@ function TaskForm({ onSave, initialTask }) {
           size="small"
           InputLabelProps={{ shrink: true }}
           inputProps={{ 'data-testid': 'due-date-input' }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              '&:hover fieldset': {
-                borderColor: '#1976d2',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#1976d2',
-              }
-            }
-          }}
+          className="task-input"
         />
         <Box>
-          <Typography variant="caption" sx={{ color: '#616161', fontWeight: 500, mb: 0.5, display: 'block' }}>
+          <Typography variant="caption" className="task-priority-label">
             Priority
           </Typography>
-          <Box display="flex" gap={1}>
+          <Box className="task-form-priority-buttons">
             {PRIORITIES.map(p => (
-              <Box
+              <ButtonBase
                 key={p}
-                component="button"
                 type="button"
                 data-testid={`priority-${p}`}
                 onClick={() => setPriority(p)}
-                sx={{
-                  px: 1.5,
-                  py: 0.5,
-                  border: 'none',
-                  borderRadius: 1,
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '0.8rem',
-                  color: '#fff',
-                  background: priority === p ? '#07F2E6' : '#7A7A7A',
-                  transition: 'background 0.15s',
-                  '&:hover': {
-                    opacity: 0.85,
-                  }
-                }}
+                className={`task-form-priority-btn${priority === p ? ' task-form-priority-btn--selected' : ''}`}
               >
                 {p}
-              </Box>
+              </ButtonBase>
             ))}
           </Box>
         </Box>
-        {error && <Typography color="error" sx={{ fontWeight: 500, fontSize: '0.875rem' }}>{error}</Typography>}
-        <Box display="flex" gap={2}>
+        {error && <Typography color="error" className="task-form-error">{error}</Typography>}
+        <Box className="task-form-submit">
           <Button 
             type="submit" 
             variant="contained" 
@@ -191,13 +127,7 @@ function TaskForm({ onSave, initialTask }) {
             fullWidth
             data-testid="submit-task"
             startIcon={initialTask ? <SaveIcon /> : <AddIcon />}
-            sx={{
-              borderRadius: 2,
-              py: 1,
-              fontWeight: 600,
-              textTransform: 'none',
-              fontSize: '0.95rem',
-            }}
+            className="task-submit-btn"
           >
             {initialTask ? 'Save Changes' : 'Add Task'}
           </Button>
