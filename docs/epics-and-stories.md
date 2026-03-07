@@ -1,0 +1,167 @@
+## MVP
+
+- Epic: Task Data Model and Validation
+  - Story: Add optional due date field to task model
+    - Acceptance Criteria:
+      - Task data supports an optional `dueDate` field.
+      - `dueDate` value uses ISO `YYYY-MM-DD` format when present.
+      - Tasks can be saved without `dueDate`.
+    - Technical Requirements:
+      - Keep backend column `tasks.due_date` as the persisted field in `packages/backend/src/app.js`.
+      - Continue using `due_date` in API payloads and normalize to PRD `dueDate` terminology in docs only.
+      - Keep `TaskForm` date input (`type="date"`) as the source of ISO date values in `packages/frontend/src/TaskForm.js`.
+      - Keep due date rendering through `formatDueDate` in `packages/frontend/src/TaskList.js`.
+  - Story: Add priority field with values P1, P2, and P3
+    - Acceptance Criteria:
+      - Task data supports a `priority` field.
+      - Accepted values are only `P1`, `P2`, and `P3`.
+      - Any non-enum priority value is rejected as invalid.
+    - Technical Requirements:
+      - Extend `tasks` table in `packages/backend/src/app.js` with `priority TEXT NOT NULL DEFAULT 'P3'` and enum validation (`CHECK (priority IN ('P1','P2','P3'))` or equivalent route validation).
+      - Update `POST /api/tasks` and `PUT /api/tasks/:id` handlers to accept and validate `priority`.
+      - Add a priority input control in `packages/frontend/src/TaskForm.js` and include `priority` in `onSave` payloads.
+      - Extend backend and frontend tests in `packages/backend/__tests__/tasks.test.js` and `packages/frontend/src/__tests__/App.test.js` to cover valid and invalid priority values.
+  - Story: Default task priority to P3
+    - Acceptance Criteria:
+      - New tasks without an explicit priority are assigned `P3`.
+      - Stored task records include `P3` as the default priority value.
+    - Technical Requirements:
+      - Enforce default at DB schema level (`DEFAULT 'P3'`) in `packages/backend/src/app.js`.
+      - Add route-level fallback so missing/empty priority resolves to `P3` before insert/update.
+      - Initialize `TaskForm` priority state to `P3` in `packages/frontend/src/TaskForm.js`.
+      - Verify default behavior in API and UI tests.
+  - Story: Require title when creating a task
+    - Acceptance Criteria:
+      - Creating a task without a title is blocked.
+      - A task is created only when `title` is present.
+    - Technical Requirements:
+      - Preserve existing frontend validation (`title.trim()`) in `packages/frontend/src/TaskForm.js`.
+      - Preserve backend 400 validation for missing/blank title in `packages/backend/src/app.js`.
+      - Add or keep regression tests for empty title in both frontend and backend test suites.
+  - Story: Ignore invalid due date values on save
+    - Acceptance Criteria:
+      - Invalid `dueDate` values are not persisted as valid dates.
+      - Invalid `dueDate` is treated as absent.
+    - Technical Requirements:
+      - Add backend date validator in `packages/backend/src/app.js` to accept only strict `YYYY-MM-DD` values.
+      - Convert invalid `due_date` inputs to `null` before insert/update.
+      - Keep `normalizeDateString` in `packages/frontend/src/TaskForm.js` for edit-mode display consistency.
+      - Add backend tests for invalid date inputs and expected `null` persistence.
+
+- Epic: Date-Based Task Filters
+  - Story: Add All, Today, and Overdue filter tabs
+    - Acceptance Criteria:
+      - The task list includes `All`, `Today`, and `Overdue` filters.
+      - Users can switch between all three filters.
+    - Technical Requirements:
+      - Add filter state and tab UI in `packages/frontend/src/App.js` or `packages/frontend/src/TaskList.js`.
+      - Reuse existing fetch flow in `TaskList` and apply filter selection either via query params or client-side filtering.
+      - Keep the current API base endpoint (`/api/tasks`) and extend with optional filter params only if needed.
+      - Add frontend tests that verify tab rendering and filter switching behavior.
+  - Story: Show completed tasks in All filter
+    - Acceptance Criteria:
+      - `All` filter includes both completed and incomplete tasks.
+    - Technical Requirements:
+      - For `All`, do not constrain by completion state in frontend filtering logic.
+      - If backend filtering is used, call `/api/tasks` without `completed` query restriction.
+      - Add UI test assertion that both completed and incomplete items appear in `All`.
+  - Story: Hide completed tasks in Today filter
+    - Acceptance Criteria:
+      - `Today` filter shows only incomplete tasks due today.
+      - Completed tasks are excluded from `Today` results.
+    - Technical Requirements:
+      - Define `isToday` using local date boundaries against `task.due_date` in `packages/frontend/src/TaskList.js`.
+      - Exclude tasks where `completed` is truthy (`1`/`true`) in Today view.
+      - Keep date parsing timezone-safe, consistent with existing local-date formatting logic.
+      - Add frontend tests that confirm completed tasks due today are excluded.
+  - Story: Hide completed tasks in Overdue filter
+    - Acceptance Criteria:
+      - `Overdue` filter shows only incomplete overdue tasks.
+      - Completed tasks are excluded from `Overdue` results.
+    - Technical Requirements:
+      - Define overdue as `due_date < today` and `completed` false in `packages/frontend/src/TaskList.js`.
+      - Reuse the same completion interpretation currently used by checkbox rendering (`!!task.completed`).
+      - Add frontend tests that verify overdue completed tasks are excluded.
+
+- Epic: Local-Only Task Storage
+  - Story: Keep task data stored locally
+    - Acceptance Criteria:
+      - Task data is persisted in local storage only.
+      - No external storage dependency is required for task persistence.
+    - Technical Requirements:
+      - Keep storage in local runtime components only (current Express + SQLite setup in `packages/backend/src/app.js`).
+      - Do not add cloud/database services or third-party storage SDKs.
+      - Keep frontend data access limited to local API routes under `/api/tasks`.
+  - Story: Ensure task workflows run without backend changes
+    - Acceptance Criteria:
+      - Creating, viewing, and filtering tasks works without backend/API updates.
+      - MVP implementation introduces no backend changes.
+    - Technical Requirements:
+      - Prefer implementing filter logic in frontend (`packages/frontend/src/TaskList.js`) using already fetched task data.
+      - Maintain compatibility with existing endpoints (`GET/POST/PUT/PATCH/DELETE /api/tasks`).
+      - Avoid adding new backend routes for MVP filtering.
+  - Story: Prevent external storage integration in MVP
+    - Acceptance Criteria:
+      - MVP does not add external storage providers.
+      - MVP scope remains local-only storage.
+    - Technical Requirements:
+      - Keep current dependencies unchanged with respect to storage providers in `packages/backend/package.json` and `packages/frontend/package.json`.
+      - Reject architecture changes that introduce remote persistence.
+      - Document local-only persistence behavior in project docs when MVP updates are merged.
+
+## Post-MVP
+
+- Epic: Overdue Task Highlighting
+  - Story: Highlight overdue tasks with red visual styling
+    - Acceptance Criteria:
+      - Overdue tasks are visually distinct from non-overdue tasks.
+      - Overdue visual treatment uses red styling.
+    - Technical Requirements:
+      - Add an overdue style branch in `packages/frontend/src/TaskList.js` list item/chip styling.
+      - Compute `isOverdue` from `task.due_date` and incomplete status before applying styles.
+      - Ensure overdue styling does not override completed-task strike-through semantics.
+
+- Epic: Advanced Task Sorting
+  - Story: Sort overdue tasks before non-overdue tasks
+    - Acceptance Criteria:
+      - Overdue tasks appear before non-overdue tasks in sorted results.
+    - Technical Requirements:
+      - Implement deterministic comparator in `packages/frontend/src/TaskList.js` to rank overdue incomplete tasks first.
+      - Apply sorting after filter selection and before rendering.
+  - Story: Sort tasks by priority from P1 to P3
+    - Acceptance Criteria:
+      - Within applicable groups, tasks are ordered by priority `P1`, then `P2`, then `P3`.
+    - Technical Requirements:
+      - Add priority rank map (`P1=1`, `P2=2`, `P3=3`) in sorting logic.
+      - Ensure tasks with missing priority are treated as `P3` for backward compatibility.
+  - Story: Sort tasks by due date in ascending order
+    - Acceptance Criteria:
+      - Within applicable groups, dated tasks are ordered from earliest due date to latest.
+    - Technical Requirements:
+      - Compare normalized ISO due dates to enforce ascending order.
+      - Preserve stable ordering fallback (for example, existing `created_at` or original index) for equal dates.
+  - Story: Place tasks without due dates at the end
+    - Acceptance Criteria:
+      - Tasks with no due date appear after tasks with due dates.
+    - Technical Requirements:
+      - Include explicit null/empty due date branch in comparator to push undated tasks last.
+      - Keep behavior consistent with current backend ordering intent (`due_date IS NULL`).
+
+- Epic: Priority Badge Color Coding
+  - Story: Show red badge for P1 tasks
+    - Acceptance Criteria:
+      - Tasks with `P1` priority display a red badge.
+    - Technical Requirements:
+      - Add a priority chip/badge renderer in `packages/frontend/src/TaskList.js`.
+      - Map `P1` to red token in MUI `sx` styling.
+  - Story: Show orange badge for P2 tasks
+    - Acceptance Criteria:
+      - Tasks with `P2` priority display an orange badge.
+    - Technical Requirements:
+      - Reuse the same priority badge component and map `P2` to orange.
+  - Story: Show gray badge for P3 tasks
+    - Acceptance Criteria:
+      - Tasks with `P3` priority display a gray badge.
+    - Technical Requirements:
+      - Reuse the same priority badge component and map `P3` to gray.
+      - Add frontend tests to validate badge text and color mapping for all priority values.
