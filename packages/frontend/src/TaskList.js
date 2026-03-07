@@ -127,7 +127,7 @@ function TaskList({ onEdit }) {
           <ListItem 
             key={task.id} 
             sx={{ 
-              pr: 18,
+              pr: 28,
               py: 1,
               mb: 1,
               borderRadius: 2,
@@ -220,6 +220,38 @@ function TaskList({ onEdit }) {
                   }}
                 />
               )}
+              <Box display="flex" gap={0.5}>
+                {['P1', 'P2', 'P3'].map(p => (
+                  <Box
+                    key={p}
+                    component="button"
+                    aria-label={`Set priority ${p}`}
+                    onClick={async () => {
+                      await fetch(`/api/tasks/${task.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...task, priority: p })
+                      });
+                      fetchTasks();
+                    }}
+                    sx={{
+                      px: 1,
+                      py: 0.25,
+                      border: 'none',
+                      borderRadius: 1,
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                      color: '#fff',
+                      background: (task.priority || 'P3') === p ? '#07F2E6' : '#7A7A7A',
+                      transition: 'background 0.15s',
+                      '&:hover': { opacity: 0.85 }
+                    }}
+                  >
+                    {p}
+                  </Box>
+                ))}
+              </Box>
               <Box 
                 sx={{ 
                   display: 'flex', 
